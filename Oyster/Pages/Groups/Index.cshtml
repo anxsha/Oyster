@@ -1,0 +1,170 @@
+@page
+@using Oyster.HelperClasses
+@using Oyster.Areas.Identity.Data
+@model Oyster.Pages.Groups.IndexModel
+@{
+    ViewData["Title"] = "Groups";
+    // Used for applying a different styling when the loaded group is the last one
+    var groupsLoaded = 0;
+}
+
+@* Group actions navigation *@
+<div class="inline-flex justify-center self-center shadow w-fit rounded-md" role="group">
+
+    <a class="inline-flex   items-center py-2 px-4 text-sm font-medium text-white bg-primary rounded-l-lg  hover:bg-darkshades hover:text-white focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-white" aria-current="page" asp-area="" asp-page="./Index">
+        <button type="button">
+            <svg class="mr-2 w-4 h-4 fill-current" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+            </svg>
+        </button>
+        My groups
+    </a>
+
+    <a class="inline-flex  items-center py-2 px-4 text-sm font-medium text-white bg-primary rounded-r-md  hover:bg-darkshades hover:text-white focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-white" aria-current="page" asp-area="" asp-page="./Create">
+        <button type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+        </button>
+        New group
+    </a>
+</div>
+
+<div class="flex justify-center mb-6">
+    @* User clicked the option to see all groups *@
+    @if (Model.ViewAllGroups) {
+        <div class="p-4 mx-5 mt-5 bg-primary rounded-lg shadow-md w-full sm:p-8">
+            @if (Model.Groups.Any()) {
+                <div class="flex justify-between items-center mb-4">
+                    <h5 class="text-xl font-bold leading-none">
+                        My groups
+                    </h5>
+                </div>
+                <div class="flow-root">
+                    @* Generate a list of groups to which the user belongs *@
+                    <ul role="list" class="grid grid-cols-2 gap-x-12 md:grid-cols-4 md:gap-x-16">
+                        @foreach (var group in Model.Groups) {
+                            ++groupsLoaded;
+                            <li class="pt-3 pb-0 sm:pt-4">
+                                @{
+                                    // Call function returning markup for a single group
+                                    await GridGroupContentMarkup(group);
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+                // User belongs to 0 groups
+            } else {
+                <div class="flex justify-between items-center mb-4">
+                    <h5 class="text-xl font-bold leading-none">You are not a member of any groups.</h5>
+                </div>
+            }
+        </div>
+        // The default page was loaded (only a few groups are visible)
+    } else {
+        <div class="p-4 max-w-md bg-primary rounded-lg shadow-md mt-5 w-full sm:p-8">
+            @if (Model.Groups.Any()) {
+                <div class="flex justify-between items-center mb-4">
+                    <h5 class="text-xl font-bold leading-none">
+                        My groups
+                    </h5>
+                    @* Reload page with all groups visible *@
+                    <form method="get" asp-page="./Index">
+                        <input type="hidden" name="ViewAllGroups" value="true">
+                        <button class="text-sm font-semibold text-white hover:underline" type="submit">
+                            View all
+                        </button>
+                    </form>
+                </div>
+                <div class="flow-root">
+                    <ul role="list" class="divide-y divide-gray-200">
+                        @foreach (var group in Model.Groups) {
+                            ++groupsLoaded;
+                            // Different styling if it is the last group
+                            if (groupsLoaded == Model.Groups.Count()) {
+                                <li class="pt-3 pb-0 sm:pt-4">
+                                    @{
+                                        // Call function returning markup for a single group
+                                        await FlexGroupContentMarkup(group);
+                                    }
+                                </li>
+                            } else {
+                                <li class="py-3 sm:py-4">
+                                    @{
+                                        // Call function returning markup for a single group
+                                        await FlexGroupContentMarkup(group);
+                                    }
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
+                // User belongs to 0 groups
+            } else {
+                <div class="flex justify-between items-center mb-4">
+                    <h5 class="text-xl font-bold leading-none">You are not a member of any groups.</h5>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@functions{
+    // Appropriate for generating markup for one group when not all groups are
+    // visible (vertical list using flex)
+    async Task FlexGroupContentMarkup(OysterGroup group) {
+        <a class="flex items-center space-x-4" asp-area="" asp-page="./Board" asp-route-id="@group.Id">
+            <div class="flex-shrink-0">
+                @if (group.Photo == null) {
+                    <div class="w-12 h-12 rounded-full">
+                        <svg class="fill-[#f3f4f6]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" xml:space="preserve">
+                            <circle cx="50" cy="20" r="10"/>
+                            <path d="M60 33.333A6.665 6.665 0 0 1 66.667 40v3.333H33.333V40A6.667 6.667 0 0 1 40 33.333h20z"/>
+                            <circle cx="26.667" cy="66.667" r="10"/>
+                            <path d="M36.667 80a6.664 6.664 0 0 1 6.666 6.667V90H10v-3.333A6.667 6.667 0 0 1 16.667 80h20zM63.021 27.302c6.221 4.192 10.313 11.299 10.313 19.365 0 1.738-.205 3.428-.566 5.059.192-.01.371-.059.566-.059 2.136 0 4.16.462 6 1.27a30.1 30.1 0 0 0 .667-6.27c0-11.127-6.071-20.814-15.068-25.993a14.814 14.814 0 0 1-1.912 6.628zM26.667 51.667c.195 0 .374.049.566.059a23.365 23.365 0 0 1-.566-5.059c0-8.066 4.092-15.176 10.313-19.365a14.747 14.747 0 0 1-1.911-6.631C26.071 25.85 20 35.54 20 46.667c0 2.151.234 4.248.667 6.27a14.876 14.876 0 0 1 6-1.27zM58.506 68.376C55.869 69.411 53.005 70 50 70s-5.866-.589-8.506-1.621c-.264 2.292-1.006 4.431-2.188 6.289C42.63 75.94 46.228 76.667 50 76.667s7.366-.727 10.693-1.999c-1.181-1.858-1.923-3.997-2.187-6.292z"/>
+                            <circle cx="73.333" cy="66.667" r="10"/>
+                            <path d="M83.333 80A6.665 6.665 0 0 1 90 86.667V90H56.667v-3.333A6.666 6.666 0 0 1 63.333 80h20z"/>
+                        </svg>
+                    </div>
+                } else {
+                    <img class="w-12 h-12 object-cover rounded-full" src="@group.Photo.Url" alt="Group image">
+                }
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="font-medium truncate">
+                    @group.Name
+                </p>
+            </div>
+        </a>
+    }
+
+    // Appropriate for generating markup for one group when all groups are
+    // visible (using grid layout)
+    async Task GridGroupContentMarkup(OysterGroup group) {
+        <a class="flex flex-col items-center" asp-area="" asp-page="./Board" asp-route-id="@group.Id">
+            <div class="flex-shrink-0">
+                @if (group.Photo == null) {
+                    <div class="w-24 h-24 rounded-full">
+                        <svg class="fill-[#f3f4f6]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" xml:space="preserve">
+                            <circle cx="50" cy="20" r="10"/>
+                            <path d="M60 33.333A6.665 6.665 0 0 1 66.667 40v3.333H33.333V40A6.667 6.667 0 0 1 40 33.333h20z"/>
+                            <circle cx="26.667" cy="66.667" r="10"/>
+                            <path d="M36.667 80a6.664 6.664 0 0 1 6.666 6.667V90H10v-3.333A6.667 6.667 0 0 1 16.667 80h20zM63.021 27.302c6.221 4.192 10.313 11.299 10.313 19.365 0 1.738-.205 3.428-.566 5.059.192-.01.371-.059.566-.059 2.136 0 4.16.462 6 1.27a30.1 30.1 0 0 0 .667-6.27c0-11.127-6.071-20.814-15.068-25.993a14.814 14.814 0 0 1-1.912 6.628zM26.667 51.667c.195 0 .374.049.566.059a23.365 23.365 0 0 1-.566-5.059c0-8.066 4.092-15.176 10.313-19.365a14.747 14.747 0 0 1-1.911-6.631C26.071 25.85 20 35.54 20 46.667c0 2.151.234 4.248.667 6.27a14.876 14.876 0 0 1 6-1.27zM58.506 68.376C55.869 69.411 53.005 70 50 70s-5.866-.589-8.506-1.621c-.264 2.292-1.006 4.431-2.188 6.289C42.63 75.94 46.228 76.667 50 76.667s7.366-.727 10.693-1.999c-1.181-1.858-1.923-3.997-2.187-6.292z"/>
+                            <circle cx="73.333" cy="66.667" r="10"/>
+                            <path d="M83.333 80A6.665 6.665 0 0 1 90 86.667V90H56.667v-3.333A6.666 6.666 0 0 1 63.333 80h20z"/>
+                        </svg>
+                    </div>
+                } else {
+                    <img class="w-24 object-cover h-24 rounded-full" src="@group.Photo.Url" alt="Group image">
+                }
+            </div>
+            <div class="flex-1 min-w-0 w-full text-center">
+                <p class="font-medium truncate">
+                    @group.Name
+                </p>
+            </div>
+        </a>
+    }
+
+}

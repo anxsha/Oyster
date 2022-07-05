@@ -1,0 +1,51 @@
+@page "/Profile/Email"
+@model EmailModel
+@{
+    ViewData["Title"] = "Change email";
+    ViewData["ActivePage"] = ManageNavPages.Email;
+}
+
+<partial name="_StatusMessage" model="Model.StatusMessage"/>
+
+<div class="bg-primary self-center max-w-lg rounded-xl shadow-xl p-2 mb-6 mt-6 w-full md:w-3/4">
+    @* Not needed with an IEmailSender *@
+    
+    @* @if (!string.IsNullOrEmpty(Model.ConfirmEmailChangeUrl)) { *@
+    @*     <p class="text-center text-xs"> *@
+    @*         Confirm the email change by *@
+    @*         <a class="text-info italic" href=@Model.ConfirmEmailChangeUrl>clicking here</a> *@
+    @*     </p> *@
+    @* } *@
+    
+    <form class="flex flex-col pt-3" id="email-form" method="post">
+        <p></p>
+        @if (Model.IsEmailConfirmed) {
+            <div class="flex flex-col pt-4">
+                <label for="Email" class="">Current email</label>
+                <div class="flex items-center">
+                    <input asp-for="Email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mt-1 leading-tight focus:outline-none focus:shadow-outline" disabled/>
+                    <span class="ml-2">✓</span>
+                </div>
+            </div>
+        } else {
+            <input asp-for="Email" class="" disabled/>
+            <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="">Send verification email</button>
+        }
+
+        <div class="flex flex-col pt-4">
+            <label asp-for="Input.NewEmail" class=""></label>
+            <div class="flex items-center">
+                <input asp-for="Input.NewEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mt-1 leading-tight focus:outline-none focus:shadow-outline"/>
+                <span class="ml-5"> </span>
+            </div>
+            <span asp-validation-for="Input.NewEmail" class="mt-2 text-sm text-red-400"></span>
+        </div>
+
+        <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="text-white bg-info hover:bg-darkshades focus:ring-4 focus:ring-darkshades w-fit self-center rounded-lg text-sm p-2.5 mt-2 text-center">Change email</button>
+    </form>
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+}

@@ -1,0 +1,17 @@
+﻿@{
+    if (ViewData.TryGetValue("ParentLayout", out var parentLayout)) {
+        Layout = (string) parentLayout;
+    } else {
+        Layout = "Shared/_Layout";
+    }
+}
+
+<div class="mt-4 bg-lighterprimary1 shadow p-3 text-darkshades rounded shadow-lg">
+    <partial name="Manage/_ManageNav"/>
+</div>
+
+@RenderBody()
+
+@section Scripts {
+    @await RenderSectionAsync("Scripts", required: false)
+}

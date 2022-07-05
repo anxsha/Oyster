@@ -1,0 +1,138 @@
+@page "/Groups/{id:int}/AddMembers"
+@using Oyster.HelperClasses
+@model Oyster.Pages.Groups.AddMembersModel
+
+@{
+    ViewData["Title"] = $"Add members - {Model.Group.Name}";
+
+}
+@* Visible when adding a new member resulted in a database error *@
+@if (Model.IsServerError) {
+    <div class="animate-hide animation-delay-5s animation-fill-forwards flex p-4 mb-4 text-sm text-red-250 bg-danger rounded-lg" role="alert" xmlns="http://www.w3.org/1999/html">
+        <svg class="inline flex-shrink-0 mr-3 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <div>
+            <span class="font-medium">Error!</span> There was an error processing your request.
+        </div>
+    </div>
+}
+
+@* Render the group header *@
+<partial name="Shared/_GroupHeader"/>
+
+@* Visible when adding a user to the group was successful *@
+@if (Model.IsUserAdded) {
+    <script>
+        setTimeout(() => {
+                    document.getElementById("user-added-alert").classList.add("hidden");
+                }, 5000);
+    </script>
+
+    <div id="user-added-alert" class="flex p-4 mb-4 text-sm mt-8 text-red-250 bg-success rounded-lg" role="alert" xmlns="http://www.w3.org/1999/html">
+        <svg class="inline flex-shrink-0 mr-3 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <div>
+            <span class="font-medium">User added!</span> You have added a new group member.
+        </div>
+    </div>
+}
+
+<div class="w-full md:w-3/4 mt-8 flex flex-col self-center items-center mb-6">
+
+    <form class="w-full" method="get" asp-page="./AddMembers">
+        <div class="flex">
+            <span class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 rounded-l-md border border-r-0 border-gray-300">
+                @@
+            </span>
+            <input name="SearchInput" value=""
+                   placeholder="Type user's display name or username" type="text" class="rounded-none rounded-r-lg bg-gray-50 border border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5">
+            <input class="text-white bg-info hover:bg-darkshades focus:ring-4 focus:ring-darkshades ml-1 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer" type="submit" value="Search">
+        </div>
+    </form>
+
+    <div class="mt-2 w-full overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+                <th scope="col" class="px-6 py-3">
+                    Display name
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Username
+                </th>
+                <th scope="col" class="px-6 py-3">
+
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var user in Model.UsersFound) {
+                <tr class="bg-white border-b">
+                    <th scope="row" class="">
+                        <a asp-page="../UserPage" asp-route-username="@user.PublicUsername" class="flex items-center px-6 py-4 font-medium text-gray-900">
+                            <img src="@(user.Avatar != null ? user.Avatar.Url : DefaultDataProvider.GetDefaultUserAvatar())" class="mr-2 rounded-full object-cover bg-gray-100 h-8 w-8" alt="">
+                            @user.DisplayName
+                        </a>
+                    </th>
+                    <td class="px-6 py-4">
+                        @user.PublicUsername
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        @if (user.Groups.FirstOrDefault(g => g.Id == Model.Group.Id) == null) {
+                            <form method="post">
+                                <input type="hidden" name="userId" value="@user.Id"/>
+                                <button type="submit" class="bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-2 text-center">Add</button>
+                            </form>
+                        } else {
+                            <span class="text-success">Already in group</span>
+                        }
+                    </td>
+                </tr>
+            }
+            <tr class="bg-white border-b">
+                <td class="px-6 py-4">
+                    @* Change page values of 0 to 1 for better visual clarity *@
+                    @* e.g. when the query result was empty *@
+                    Showing page @(Model.UsersFound.PageIndex != 0 ? Model.UsersFound.PageIndex : 1) of
+                    @(Model.UsersFound.TotalPages != 0 ? Model.UsersFound.TotalPages : 1)
+                </td>
+                <td class="px-6 py-4 text-right" colspan="2">
+                    @if (Model.UsersFound.HasPreviousPage) {
+                        <a asp-page="./AddMembers" class="bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-2 text-center mr-2"
+                           asp-route-pageIndex="@(Model.UsersFound.PageIndex - 1)"
+                           asp-route-currentFilter="@Model.CurrentFilter">
+                            <btn type="button" class="">
+                                Prev
+                            </btn>
+                        </a>
+                    } else {
+                        <btn disabled type="button" class="cursor-not-allowed bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-2 text-center mr-2">
+                            Prev
+                        </btn>
+                    }
+
+                    @if (Model.UsersFound.HasNextPage) {
+                        <a asp-page="./AddMembers" class="bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-2 text-center mr-2"
+                           asp-route-pageIndex="@(Model.UsersFound.PageIndex + 1)"
+                           asp-route-currentFilter="@Model.CurrentFilter">
+                            <btn type="button" class=" ">
+                                Next
+                            </btn>
+                        </a>
+                    } else {
+                        <btn disabled type="button" class="cursor-not-allowed bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-2 text-center mr-2">
+                            Next
+                        </btn>
+                    }
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+
+    </div>
+
+
+</div>

@@ -1,0 +1,79 @@
+@page "/User/{username}"
+@using Oyster.HelperClasses
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using Castle.Core.Internal
+@model Oyster.Pages.UserPageModel
+
+@{
+    ViewData["Title"] = "User page";
+}
+
+<div class="bg-primary flex flex-col self-center max-w-4xl rounded-xl shadow-xl p-4 mb-6 mt-6 w-full md:w-3/4">
+    <div class="flex">
+        @* Show a default avatar if the user does not have one *@
+        @if (Model.PageUser.Avatar is null) {
+            <div class="h-fit text-center">
+                <div class="w-24 h-24 rounded-full shadow-xl bg-gray-100 overflow-hidden">
+                    <img src="@(DefaultDataProvider.GetDefaultUserAvatar())" alt="">
+                </div>
+            </div>
+        } else {
+            <div class="h-fit text-center">
+                <img class="min-w-[96px] w-[96px] h-[96px] object-cover rounded-full shadow-xl" src="@Model.PageUser.Avatar.Url"
+                     alt="User avatar">
+            </div>
+        }
+        <div class="flex flex-col ml-4">
+            <div class="flex h-fit">
+                <p class="focus:ring-0 border-0 mt-2 h-fit bg-transparent font-semibold focus:border focus:border-darkshades shadow-xl appearance-none rounded text-white leading-none focus:shadow-outline">
+                    @Model.PageUser.DisplayName
+                </p>
+            </div>
+            @*The account is no longer active (anonymized)*@
+            @if (!Model.PageUser.IsUserDeactivated) {
+                <p class="w-fit p-1 focus:ring-0 border-0 mt-2 h-fit bg-transparent font-semibold shadow-xl appearance-none rounded text-white text-xs leading-none underline">
+                    @@@Model.PageUser.PublicUsername
+                </p>
+            }
+        </div>
+    </div>
+
+    @if (Model.PageUser.IsUserDeactivated) {
+        <div class="flex justify-between items-center mb-2 mt-6">
+            <h5 class="text-lg font-bold leading-none">This user is not active anymore.</h5>
+        </div>
+    } else {
+        if (Model.GroupsInCommon.IsNullOrEmpty()) {
+            <div class="flex justify-between items-center mb-2 mt-6">
+                <h5 class="text-lg font-bold leading-none">You have no groups in common.</h5>
+            </div>
+        } else {
+            <div class="flex justify-between items-center mb-2 mt-6">
+                <h5 class="text-lg font-bold leading-none">Groups in common:</h5>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 md:gap-x-16 gap-x-6 gap-y-4 mt-2 mb-4">
+                @foreach (var group in Model.GroupsInCommon) {
+                    <a title="@group.Name" class="flex flex-col items-center" asp-area="" asp-page="Groups/Board" asp-route-id="@group.Id">
+                        <div class="flex-shrink-0">
+                            @*Show the default group photo when group's founder has not set one*@
+                            @if (group.Photo == null) {
+                                <img class="w-20 object-cover h-20" src="@DefaultDataProvider.GetDefaultGroupPhoto()" alt="Group image"
+                                     @*Except use this filter to modify the photo's color (to #f3f4f6)
+                                     so that it looks better on this particular page*@
+                                     style="filter: brightness(0) saturate(100%) invert(100%) sepia(6%) saturate(2687%) hue-rotate(178deg) brightness(100%) contrast(93%)">
+                            } else {
+                                <img class="w-20 object-cover h-20 rounded-full" src="@group.Photo.Url" alt="Group image">
+                            }
+                        </div>
+                        <div class="flex-1 min-w-0 w-full text-center">
+                            <p class="text-xs truncate">
+                                @group.Name
+                            </p>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    }
+</div>

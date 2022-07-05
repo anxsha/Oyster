@@ -1,0 +1,388 @@
+@page "/Groups/{id:int}/Board"
+@using Oyster.HelperClasses
+@model Oyster.Pages.Groups.BoardModel
+
+@{
+    ViewData["Title"] = $"Board - {Model.Group.Name}";
+}
+
+@* Visible when adding a new post resulted in a database error *@
+@if (Model.IsServerError) {
+    <div class="animate-hide animation-delay-5s animation-fill-forwards flex p-4 mb-4 text-sm text-red-250 bg-danger rounded-lg" role="alert" xmlns="http://www.w3.org/1999/html">
+        <svg class="inline flex-shrink-0 mr-3 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <div>
+            <span class="font-medium">Error!</span> There was an error processing your request.
+        </div>
+    </div>
+}
+
+<div id="alerts-container" class="fixed top-0 w-full z-50 flex justify-center">
+
+</div>
+
+@* Render the group header *@
+<partial name="Shared/_GroupHeader"/>
+
+<div class="md:w-3/4 mt-2 self-center mb-6">
+    @* Area for creating a new post *@
+    <div class="flex flex-col mt-3 bg-lighterprimary1 shadow p-3 text-darkshades">
+        <div class="flex justify-between">
+            <div class="flex">
+                @* Display default avatar when user hasn't set one *@
+                <img src="@(Model.CurrentUser.Avatar != null ? Model.CurrentUser.Avatar.Url : DefaultDataProvider.GetDefaultUserAvatar())" class="-ml-2 -mt-2 rounded-full bg-gray-100 object-cover h-12 w-12" alt="">
+                <span class="ml-2 overflow-hidden text-ellipsis self-center">@Model.CurrentUser.DisplayName</span>
+                <span class="bg-primarybackground/30 text-info text-xs self-center h-fit font-semibold ml-2 px-2 py-0.5 rounded">You</span>
+            </div>
+
+        </div>
+        <div class="mt-4">
+            <form method="post" class="mt-4 flex flex-col">
+                <textarea asp-for="Input.Content" class="w-full shadow-lg bg-lighterprimary2 bg-opacity-[0.5] block py-2.5 w-full text-sm text-darkshades border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-darkshades placeholder:text-darkshades"
+                                      placeholder="Write a post..." required rows="3" maxlength="5000">
+                                  </textarea>
+                <span asp-validation-for="Input.Content" class="mt-2 text-sm text-red-400"></span>
+
+                <div class="mt-4 border-t flex items-center justify-between pt-2">
+                    <button class="invisible"></button>
+                    <button type="submit" class="text-white bg-info hover:bg-darkshades font-medium rounded-lg shadow text-sm py-2 px-4 text-center">
+                        Post
+                    </button>
+                    <button type="button" data-modal-toggle="poll-edition-modal" class="relative justify-center text-white bg-info hover:bg-darkshades font-medium shadow rounded-lg text-sm p-2 text-center inline-flex items-center mr-2 ">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/>
+                        </svg>
+                        <svg id="poll-included-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor" class="hidden absolute z-50 m-auto w-8 h-8 text-success ">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                        </svg>
+                    </button>
+
+                    @* Area visible when poll edition was clicked *@
+                    <div id="poll-edition-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 md:inset-0 h-modal md:h-full">
+                        <div class="relative p-2 m-auto bg-lighterprimary1 rounded w-full max-w-md md:h-auto">
+                            <div class="relative bg-lighterprimary1 rounded-lg shadow">
+                                <button type="button" class="absolute top-0 right-0 text-white bg-transparent hover:bg-lighterprimary2 hover:text-info rounded-lg text-sm p-1 ml-auto inline-flex items-center" data-modal-toggle="poll-edition-modal">
+                                    <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                                <div class="flex flex-col p-6">
+                                    <input id="is-poll-included-input" asp-for="Input.PollIsIncluded" type="hidden" value="false">
+                                    <input type="text" id="poll-title" asp-for="Input.PollTitle" rows="1" maxlength="1000" class="shadow border-gray-300 placeholder:text-darkshades block p-2.5 w-full text-xs text-darkshades bg-white rounded-lg focus:ring-0 focus:border focus:border-info" placeholder="Poll title...">
+                                    <div class="flex mt-2">
+                                        <input id="add-poll-option-input" type="text" maxlength="1000" placeholder="Poll option..." class="shadow border-gray-300 placeholder:text-darkshades block p-2.5 w-full text-xs text-darkshades bg-white rounded-lg focus:ring-0 focus:border focus:border-info">
+                                        <button type="button" class="text-white border border-white hover:bg-success focus:ring-0 font-medium rounded-lg p-1 ml-2" id="add-poll-option-btn">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <div class="mt-2" id="added-poll-options-container">
+
+                                    </div>
+
+                                </div>
+                                <div class="p-6 text-center">
+                                    @* Saving the poll to be included *@
+                                    <button id="include-poll-btn" data-modal-toggle="poll-edition-modal" type="button" class="text-white bg-success hover:bg-success/75 focus:ring-4 focus:outline-none focus:ring-success font-medium rounded-lg text-sm px-5 py-2.5 mr-4">
+                                        Include poll
+                                    </button>
+                                    @* Removing added options from the post *@
+                                    <button id="remove-poll-btn" data-modal-toggle="poll-edition-modal" type="button" class="text-white bg-danger hover:bg-danger/75 focus:ring-4 focus:outline-none focus:ring-danger rounded-lg text-sm font-medium px-5 py-2.5">
+                                        Remove poll
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="flex flex-col bg-lighterprimary2 rounded-lg mt-4 p-2">
+        <h2 class="font-semibold text-lg text-darkshades">Recent activity</h2>
+        <div id="posts-container">
+            @* Show latest posts *@
+            @foreach (var post in Model.Posts) {
+                <div class="flex flex-col mt-3 bg-lighterprimary1 shadow p-3 text-darkshades">
+                    <div class="flex justify-between">
+                        <div class="flex">
+                            <a class="flex" asp-page="../UserPage" asp-route-username="@post.Author.PublicUsername">
+                                <img src="@(post.Author.Avatar != null ? post.Author.Avatar.Url : DefaultDataProvider.GetDefaultUserAvatar())" class="-ml-2 -mt-2 rounded-full object-cover bg-gray-100 h-12 w-12 min-w-[3rem]" alt="">
+                                <span class="ml-2 overflow-hidden text-ellipsis max-w-[150px] md:max-w-none text-sm self-center">@post.Author.DisplayName</span>
+                            </a>
+                            @if (post.Author.Id == Model.CurrentUser.Id) {
+                                <span class="bg-primarybackground/30 text-info self-center h-fit text-xs font-semibold ml-2 px-2 py-0.5 rounded">You</span>
+                            }
+                        </div>
+                        <span class="ml-5 text-xs mr-1">
+                            @DateFormatter.GetDefaultPostFormat(post.CreatedAt.DateTime, Model.UserTimeZone)
+                        </span>
+                    </div>
+                    @* text-[0] is used to eliminate whitespace coming from HTML formatting *@
+                    @* thus, text-base is later used *@
+                    <div class="mt-2 text-[0] p-3">
+                        @{
+                            const int maxInitialLength = 1150;
+                        }
+                        @* If the post is too long, show a view-more/less button*@
+                        @if (@post.Content.Length < maxInitialLength) {
+                            <span class="text-base overflow-wrap-any whitespace-pre-line">@post.Content</span>
+                        } else {
+                            <span class="text-base overflow-wrap-any whitespace-pre-line" id="less-@post.Id">@post.Content[..maxInitialLength]</span>
+                            <span class="text-base" id="dots-@post.Id">...</span>
+                            <button onClick="expandPostContent(this.id)" id="more-btn-@post.Id" class="text-base text-info hover:underline">&nbsp;View more</button>
+                            <span class="text-base hidden overflow-wrap-any whitespace-pre-line" id="more-@post.Id">@post.Content.Substring(maxInitialLength, @post.Content.Length - (maxInitialLength + 1))</span>
+                            <button onClick="hidePostContent(this.id)" id="less-btn-@post.Id" class="text-base hidden text-info hover:underline">&nbsp;View less</button>
+                        }
+                    </div>
+                    <div class="mt-2 flex">
+                        <a asp-page="./Posts/Index" asp-route-groupId="@Model.Group.Id" asp-route-postId="@post.Id" class="flex p-3 w-fit">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                            </svg>
+                            <span class="ml-1">@(post.CommentsCount < 99 ? post.CommentsCount : "99+")</span>
+                        </a>
+                        @if (post.IsPollIncluded) {
+                            <a asp-page="./Posts/Index" asp-route-groupId="@Model.Group.Id" asp-route-postId="@post.Id" class="flex p-3 w-fit">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/>
+                                </svg>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+        @* When more posts exist in this group, allow them to be fetched *@
+        @if (Model.Posts.HasNextPage) {
+            <button id="load-more-btn" onclick="loadMore()" type="button" class="text-white bg-darkshades hover:bg-lighterdarkshades focus:ring-4 focus:outline-none focus:ring-darkshades font-medium rounded-lg text-sm px-5 py-2.5 text-center mt-4 inline-flex items-center">
+                <svg id="loading-spinner" class="inline mr-3 w-4 h-4 text-white" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+                </svg>
+                <p id="load-more-btn-text">Load more...</p>
+            </button>
+        }
+
+    </div>
+
+
+</div>
+
+@section Scripts {
+    <script>
+        const alertsContainer = document.querySelector("#alerts-container");
+        const addPollOptionBtn = document.querySelector("#add-poll-option-btn");
+        const addedPollOptionsContainer = document.querySelector("#added-poll-options-container");
+        const addPollOptionInput = document.querySelector("#add-poll-option-input");
+        const includePollBtn = document.querySelector("#include-poll-btn");
+        const removePollBtn = document.querySelector("#remove-poll-btn");
+        const isPollIncludedInput = document.querySelector("#is-poll-included-input");
+        const pollIncludedIcon = document.querySelector("#poll-included-icon");
+        let pollOptionsAdded = 0;
+
+        const currentUserId = "@Model.CurrentUser.Id";
+
+        let postsHaveNextPage = @Model.Posts.HasNextPage.ToString().ToLower();
+        let currentPostsPageIndex = @Model.Posts.PageIndex;
+        const postsToFetchCount = @Model.PostsToBeLoadedCount;
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            // Define event on adding a new poll option by clicking the 'plus' button
+            addPollOptionBtn.addEventListener('click', () => {
+                // Get the typed text
+                let optionValue = addPollOptionInput.value;
+                // Clear the input field after adding
+                addPollOptionInput.value = "";
+                if (optionValue) {
+                    ++pollOptionsAdded;
+                    // Double quotes would mess with HTML formatting
+                    optionValue = optionValue.replaceAll('"', "'");
+                    // Show all added options below
+                    addedPollOptionsContainer.innerHTML += `
+                        <input type="text" class="bg-success mt-2 text-white text-sm shadow-sm block w-fit border-none p-2" value="${optionValue}" disabled readonly>
+                        <input name="Input.PollOptions" type="hidden" value="${optionValue}">
+                    `;
+                }
+            });
+            // Include the poll when it has options added and was saved by clicking the include button
+            includePollBtn.addEventListener('click', () => {
+                if (pollOptionsAdded > 0) {
+                    isPollIncludedInput.value = true;
+                    pollIncludedIcon.classList.remove("hidden");
+                }
+            });
+            // Discarding the poll
+            removePollBtn.addEventListener('click', () => {
+                pollOptionsAdded = 0;
+                isPollIncludedInput.value = false;
+                addedPollOptionsContainer.innerHTML = "";
+                pollIncludedIcon.classList.add("hidden");
+            })
+        });
+        
+        // Called with View more
+        const expandPostContent = (btnId) => {
+            // Get the id from element's id attribute (more-btn-<<id>>)
+            const postId = btnId.substring(9);
+            
+            const hiddenContent = document.getElementById(`more-${postId}`);
+            const dots = document.getElementById(`dots-${postId}`);
+            const moreBtn = document.getElementById(btnId);
+            const lessBtn = document.getElementById(`less-btn-${postId}`);
+            
+            dots.classList.add('hidden');
+            hiddenContent.classList.remove('hidden');
+            moreBtn.classList.add('hidden');
+            lessBtn.classList.remove('hidden');
+        }
+        // Called with View less
+        const hidePostContent = (btnId) => {
+            // Get the id from element's id attribute (less-btn-<<id>>)
+            const postId = btnId.substring(9);
+            
+            const hiddenContent = document.getElementById(`more-${postId}`);
+            const dots = document.getElementById(`dots-${postId}`);
+            const moreBtn = document.getElementById(`more-btn-${postId}`);
+            const lessBtn = document.getElementById(btnId);
+            
+            dots.classList.remove('hidden');
+            hiddenContent.classList.add('hidden');
+            moreBtn.classList.remove('hidden');
+            lessBtn.classList.add('hidden');
+        }
+        
+        // Fetching more posts
+        const loadMore = async () => {
+            const loadMoreBtn = document.getElementById("load-more-btn");
+            const loadMoreBtnText = document.getElementById("load-more-btn-text");
+            const loadingSpinner = document.getElementById("loading-spinner");
+            const postsContainer = document.getElementById("posts-container");
+            const maxInitialPostLength = 1150;
+            loadingSpinner.classList.toggle("animate-spin");
+            loadMoreBtnText.innerText = "Loading...";
+            
+            let postHtmlContent = "";
+    
+            const response = await fetch(
+                `${location.toString()}/?handler=MorePosts&postsPageSize=${postsToFetchCount}&pageIndex=${currentPostsPageIndex + 1}`,
+                {
+                    method: 'GET',
+                    headers: {
+                    }
+                }
+            );
+            if (!response.ok) {
+                showLoadingPostsErrorAlert();
+            } else {
+                const data = await response.json();
+                data["posts"].forEach(post => {
+                    postHtmlContent += `
+                        <div class="flex flex-col mt-3 bg-lighterprimary1 shadow p-3 text-darkshades">
+                            <div class="flex justify-between">
+                                <div class="flex">
+                                    <a href="/User/${post['authorUsername']}" class="flex">
+                                        <img src="${post['authorAvatar'] != null ? post['authorAvatar'].url : '@DefaultDataProvider.GetDefaultUserAvatar()'}" class="-ml-2 object-cover -mt-2 rounded-full bg-gray-100 h-12 w-12" alt="">
+                                        <span class="ml-2 overflow-hidden text-ellipsis max-w-[150px] md:max-w-none text-sm self-center">${post['authorDisplayName']}</span>
+                                        ${currentUserId === post['authorId'] ? generateCurrentUserBadgeMarkup() : ''}
+                                    </a>
+                                </div>
+                                <span class="ml-10 mr-1">
+                                    ${post['createdAtFormatted']}
+                                </span>
+                            </div>
+                            @* text-[0] is used to eliminate whitespace coming from HTML formatting *@
+                            @* thus, text-base is later used *@
+                            
+                    `;
+    
+                    @* If the post is too long, show a view-more/less button*@
+                    if (post['content'].length < maxInitialPostLength) {
+                        postHtmlContent += `
+                        <div class="mt-2 text-[0] p-3">
+                            <span class="text-base overflow-wrap-any">${post['content']}</span>
+                        </div>
+                        `;
+                    } else {
+                        postHtmlContent += `
+                            <div class="mt-2 text-[0] p-3">
+                                <span class="text-base overflow-wrap-any whitespace-pre-line" id="less-${post['id']}">${post['content'].slice(0, maxInitialPostLength)}</span>
+                                <span class='text-base' id="dots-${post['id']}">...</span>
+                                <button onClick="expandPostContent(this.id)" id="more-btn-${post['id']}" class="text-base text-info hover:underline">&nbsp;View more</button>
+                                <span class="text-base hidden overflow-wrap-any whitespace-pre-line" id="more-${post['id']}">${post['content'].slice(maxInitialPostLength)}</span>
+                                <button onClick="hidePostContent(this.id)" id="less-btn-${post['id']}" class="text-base hidden text-info hover:underline">&nbsp;View less</button>
+                            </div>
+                        `;
+                    }
+                    postHtmlContent += `
+                            <div class="mt-2 flex">
+                                <a href='/Groups/@Model.Group.Id/Posts/${post["id"]}' class="flex p-3 w-fit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                                    </svg>
+                                    <span class="ml-1">${post["commentsCount"] < 99 ? post["commentsCount"] : "99+"}</span>
+                                </a>
+                    `;
+                    if (post["isPollIncluded"]) {
+                        postHtmlContent += `
+                            <a href='/Groups/@Model.Group.Id/Posts/${post["id"]}' class="flex p-3 w-fit">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/>
+                                </svg>
+                            </a>
+                        `;
+                    }
+                    postHtmlContent += "</div></div>";
+                });
+                
+                currentPostsPageIndex = data["pageIndex"];
+                postsHaveNextPage = data["hasNextPage"];
+
+            // If there are still more posts available to be fetched,
+            // show that option
+            if (postsHaveNextPage) {
+                loadingSpinner.classList.toggle("animate-spin");
+                loadMoreBtnText.innerText = "Load more...";
+            } else {
+                loadMoreBtn.classList.add("hidden");
+            }
+    
+            postsContainer.innerHTML += postHtmlContent;
+            }
+        }
+
+        const showLoadingPostsErrorAlert = () => {
+            alertsContainer.innerHTML = `
+                <div class="flex items-center justify-center p-4 mb-4 w-2/3 text-center text-lg text-white opacity-95 bg-danger rounded-b" role="alert" xmlns="http://www.w3.org/1999/html">
+                    <svg class="inline flex-shrink-0 mr-3 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div class="text-center">
+                        <span class="font-bold">Error!</span> Loading more posts failed.
+                    </div>
+                </div>
+            `;
+            setTimeout(() => {
+                clearAlertsContainer();
+            }, 3000);
+        }
+        
+        const clearAlertsContainer = () => {
+            alertsContainer.innerHTML = "";
+        }
+        
+        // Return markup for showing a badge
+        const generateCurrentUserBadgeMarkup = () => 
+            '<span class="bg-primarybackground/30 text-info h-fit self-center text-xs font-semibold ml-2 px-2 py-0.5 rounded">You</span>';
+    
+    </script>
+}

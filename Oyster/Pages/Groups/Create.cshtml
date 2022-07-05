@@ -1,0 +1,47 @@
+@page
+@model Oyster.Pages.Groups.CreateModel
+@{
+    ViewData["Title"] = "Create a group";
+}
+@* Visible when adding a new group resulted in a database error *@
+@if (Model.IsServerError) {
+    <div class="animate-hide animation-delay-5s animation-fill-forwards flex p-4 mb-4 text-sm text-red-250 bg-danger rounded-lg" role="alert">
+        <svg class="inline flex-shrink-0 mr-3 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <div>
+            <span class="font-medium">Error!</span> There was an error processing your request.
+        </div>
+    </div>
+}
+
+<div class="bg-lighterprimary1 self-center max-w-lg rounded-xl shadow-xl p-2 mb-6 mt-3 w-full md:w-3/4">
+    <h2 class="text-center w-full text-lg font-semibold">Create a group</h2>
+    <form class="p-4 m-4" enctype="multipart/form-data" method="post">
+        <div class="mb-6">
+            <label asp-for="Input.Name" class="block mb-2 font-medium text-white"></label>
+            <input asp-for="Input.Name" class="shadow bg-darkshades border border-primary text-white text-sm rounded-lg focus:ring-info focus:border-info block w-full p-2.5">
+            <span asp-validation-for="Input.Name" class="mt-2 text-sm text-red-400"></span>
+        </div>
+        <div class="mb-6">
+            <label asp-for="Input.Description" class="block mb-2 font-medium text-white"></label>
+            <input asp-for="Input.Description" class="shadow bg-darkshades border border-primary text-white text-sm rounded-lg focus:ring-info focus:border-info block w-full p-2.5">
+            <span asp-validation-for="Input.Description" class="mt-2 text-sm text-red-400"></span>
+        </div>
+        <div class="mb-6">
+
+            <label class="block mb-2 font-medium text-white" asp-for="Input.ImageFile">Upload group photo</label>
+            <input asp-for="Input.ImageFile" class="shadow bg-darkshades border border-primary text-white text-sm rounded-lg focus:ring-info focus:border-info block w-full" accept=".png,.jpg,.jpeg,.gif" type="file">
+            <p class="mt-1 text-xs text-white ml-3">png, jpg or gif (max. 2MB).</p>
+            <span asp-validation-for="Input.ImageFile" class="mt-2 text-sm text-red-400">
+            </span>
+
+            <span class="mt-2 text-sm text-red-400">
+                @if (!Model.IsPhotoFileTypeValid) {
+                    @Model.InvalidPhotoFileTypeMessage
+                }
+            </span>
+        </div>
+        <button type="submit" class="text-white bg-info hover:bg-darkshades focus:ring-4 focus:ring-darkshades font-medium rounded-lg text-sm px-5 py-2.5 text-center">Create</button>
+    </form>
+</div>

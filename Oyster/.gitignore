@@ -1,0 +1,9 @@
+**/.DS_Store
+wwwroot/css/output.css
+wwwroot/uploads/images/*.jpg
+wwwroot/uploads/images/*.png
+wwwroot/uploads/images/*.gif
+appsettings- copy sqlserver Azure.json
+appsettings- copy sqlserver mac.json
+appsettings- copy sqlserver windows.json
+Migrations/

@@ -1,0 +1,40 @@
+<div class="">
+    <ul class="flex flex-wrap justify-around items-center -mb-px text-sm font-medium text-center text-darkshades">
+        <li class="mr-2">
+            <a id="profile" asp-page="./Index" class="nav-link @ManageNavPages.IndexNavClass(ViewContext) inline-flex items-center p-4 rounded-t-lg border-b-2 border-transparent  hover:border-darkshades group">
+                <svg aria-hidden="true" class="mr-2 w-6 h-6  group-hover:opacity-80" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                </svg>Profile
+            </a>
+        </li>
+        <li class="mr-2">
+            <a id="email" asp-page="./Email" class="nav-link @ManageNavPages.IndexNavClass(ViewContext) inline-flex items-center p-4 rounded-t-lg border-b-2 border-transparent  hover:border-darkshades group" aria-current="page">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="mr-2 w-6 h-6  group-hover:opacity-80">
+                    <path fill-rule="evenodd" d="M17.834 6.166a8.25 8.25 0 100 11.668.75.75 0 011.06 1.06c-3.807 3.808-9.98 3.808-13.788 0-3.808-3.807-3.808-9.98 0-13.788 3.807-3.808 9.98-3.808 13.788 0A9.722 9.722 0 0121.75 12c0 .975-.296 1.887-.809 2.571-.514.685-1.28 1.179-2.191 1.179-.904 0-1.666-.487-2.18-1.164a5.25 5.25 0 11-.82-6.26V8.25a.75.75 0 011.5 0V12c0 .682.208 1.27.509 1.671.3.401.659.579.991.579.332 0 .69-.178.991-.579.3-.4.509-.99.509-1.671a8.222 8.222 0 00-2.416-5.834zM15.75 12a3.75 3.75 0 10-7.5 0 3.75 3.75 0 007.5 0z" clip-rule="evenodd"/>
+                </svg>
+                Email
+            </a>
+        </li>
+        <li class="mr-2">
+            <a id="change-password" asp-page="./ChangePassword" class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext) inline-flex items-center p-4 rounded-t-lg border-b-2 border-transparent  hover:border-darkshades group">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="mr-2 w-6 h-6  group-hover:opacity-80">
+                    <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z" clip-rule="evenodd"/>
+                </svg>
+                Password
+            </a>
+        </li>
+        <li class="mr-2">
+            <a id="personal-data" asp-page="./PersonalData" class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext) inline-flex items-center p-4 rounded-t-lg border-b-2 border-transparent  hover:border-darkshades group">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="mr-2 w-6 h-6  group-hover:opacity-80">
+                    <path d="M21 6.375c0 2.692-4.03 4.875-9 4.875S3 9.067 3 6.375 7.03 1.5 12 1.5s9 2.183 9 4.875z"/>
+                    <path d="M12 12.75c2.685 0 5.19-.586 7.078-1.609a8.283 8.283 0 001.897-1.384c.016.121.025.244.025.368C21 12.817 16.97 15 12 15s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.285 8.285 0 001.897 1.384C6.809 12.164 9.315 12.75 12 12.75z"/>
+                    <path d="M12 16.5c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 001.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 001.897 1.384C6.809 15.914 9.315 16.5 12 16.5z"/>
+                    <path d="M12 20.25c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 001.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 001.897 1.384C6.809 19.664 9.315 20.25 12 20.25z"/>
+                </svg>
+                Account data
+            </a>
+        </li>
+    </ul>
+</div>
+
+@* <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li> *@

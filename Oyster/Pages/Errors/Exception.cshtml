@@ -1,0 +1,24 @@
+@page "/Errors/500"
+@using Oyster.Areas.Identity.Data
+@using Microsoft.AspNetCore.Identity
+@model Oyster.Pages.Errors.ExceptionModel
+@inject SignInManager<OysterUser> SignInManager
+
+@{
+    ViewData["Title"] = "Server error";
+}
+
+<section class="">
+    <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+        <div class="mx-auto max-w-screen-sm text-center">
+            <h1 class="mb-4 text-7xl tracking-tight font-extrabold lg:text-9xl text-primary">500</h1>
+            <p class="mb-4 text-3xl tracking-tight font-bold text-darkshades md:text-4xl">The server encountered an error and was not able to complete your request.</p>
+            <p class="mb-4 text-lg font-light text-info">If the problem persists, please contact us at <span class="italic underline">not_real_address@oyster.com</span> </p>
+            @if (SignInManager.IsSignedIn(User)) {
+                <a asp-page="/Home" class="inline-flex text-primary uppercase text-center my-4 hover:underline">Home</a>
+            } else {
+                <a asp-page="/Account/Login" asp-area="Identity" class="inline-flex text-primary uppercase text-center my-4 hover:underline">Log in</a>
+            }
+        </div>
+    </div>
+</section>

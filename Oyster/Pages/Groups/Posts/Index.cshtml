@@ -1,0 +1,446 @@
+@page "/Groups/{groupId:int}/Posts/{postId:int}"
+@using Oyster.HelperClasses
+@using System.Globalization
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model Oyster.Pages.Groups.Posts.IndexModel
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    ViewData["Title"] = $"Post - {Model.Group.Name}";
+    var token = Antiforgery.GetAndStoreTokens(HttpContext).RequestToken;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/loading-anim.css"/>
+}
+
+<div id="alerts-container" class="fixed top-0 z-50 flex w-full justify-center">
+
+</div>
+
+@if (Model.IsServerError) {
+    <div class="animate-hide animation-delay-5s animation-fill-forwards flex p-4 mb-4 text-sm text-red-250 bg-danger rounded-lg" role="alert">
+        <svg class="inline flex-shrink-0 mr-3 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <div>
+            <span class="font-medium">Error!</span> Casting a vote failed.
+        </div>
+    </div>
+}
+
+@* Render the group header *@
+<partial name="Shared/_GroupHeader"/>
+
+<div class="flex flex-col mt-6 bg-lighterprimary2 shadow p-3 text-darkshades mx-3 md:w-[700px] md:self-center">
+    <div class="flex justify-between">
+        <div class="flex">
+            <a class="flex" asp-page="../../UserPage" asp-route-username="@Model.Post.Author.PublicUsername">
+            <img src="@(Model.Post.Author.Avatar != null ? Model.Post.Author.Avatar.Url : DefaultDataProvider.GetDefaultUserAvatar())" class="rounded-full object-cover bg-gray-100 h-12 w-12 min-w-[3rem]" alt="">
+            <span class="ml-2 text-sm max-w-[125px] md:max-w-none overflow-hidden text-ellipsis self-center">@Model.Post.Author.DisplayName</span>
+            </a>
+            @if (Model.Post.Author == Model.CurrentUser) {
+                <span class="bg-primarybackground/30 text-info self-center h-fit text-xs font-semibold ml-2 px-2 py-0.5 rounded">You</span>
+            }
+        </div>
+        <span class="mr-1 ml-5 text-xs">
+            @DateFormatter.GetDetailedPostFormat(Model.Post.CreatedAt.DateTime, Model.UserTimeZone)
+        </span>
+    </div>
+    <div class="mt-2 p-3">
+        @if (Model.Post.Poll is not null) {
+            <button type="button" data-modal-toggle="show-poll-modal" class="float-right mb-8 ml-8 text-white bg-info hover:bg-darkshades font-medium shadow rounded-lg text-sm p-2 text-center inline-flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/>
+                </svg>
+            </button>
+            <div id="show-poll-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 md:inset-0 h-modal md:h-full">
+                <div class="relative p-2 m-auto bg-lighterprimary1 rounded w-full max-w-md md:h-auto">
+                    <div class="relative bg-lighterprimary1 rounded-lg shadow">
+                        @* Make poll visible *@
+                        <button type="button" class="absolute top-0 right-0 text-white bg-transparent hover:bg-lighterprimary2 hover:text-info rounded-lg text-sm p-1 ml-auto inline-flex items-center" data-modal-toggle="show-poll-modal">
+                            <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <form method="post">
+                            <div class="flex flex-col p-6">
+                                <div class="font-bold mb-2 border-primary overflow-wrap-any border-b-2">
+                                    @(Model.Post.Poll.Title ?? "")
+                                </div>
+                                <ul>
+                                    @* Necessary for styling visually percentage of votes for each option *@
+                                    @{
+                                        var totalVotesCount = Model.Post.Poll.Options.Sum(option => option.VotersCount);
+                                        if (totalVotesCount == 0) {
+                                            totalVotesCount = 1;
+                                        }
+
+                                    }
+                                    @foreach (var option in Model.Post.Poll.Options) {
+                                        <div class="flex items-center">
+                                            <li class="relative w-3/4 p-2">
+                                                <input class="sr-only peer" asp-for="Input.PollOptionId" type="radio" value="@option.Id" id="poll-option-input-@option.Id"/>
+                                                <label for="poll-option-input-@option.Id" class="border-2 relative flex items-center rounded rounded-r-none border-primary peer-checked:rounded-r peer-checked:border-success peer-checked:ring-2 peer-checked:ring-offset-lighterprimary1 peer-checked:ring-offset-1 peer-checked:ring-success cursor-pointer" asp-for="Input.PollOptionId">
+                                                    @if (Model.Post.Poll.OptionVotedByUser?.Id == option.Id) {
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="ml-1 w-5 h-5 p-1 text-white absolute z-50 bg-success rounded-full">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                                                        </svg>
+                                                    }
+                                                    <div class="absolute bg-primary h-full" style="width: @(((float) option.VotersCount / totalVotesCount * 100).ToString(CultureInfo.InvariantCulture))%"></div>
+                                                    <div class="p-1 truncate" data-tooltip-target='tooltip-opt-@option.Id'>
+                                                        <span class="z-40 ml-6 relative">@option.Text</span>
+                                                    </div>
+                                                    <div id="tooltip-opt-@option.Id" role="tooltip" class="inline-block absolute invisible z-50 py-2 px-3 text-xs font-medium bg-primarybackground/75 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip">
+                                                        @option.Text
+                                                        <div class="tooltip-arrow" data-popper-arrow></div>
+                                                    </div>
+
+                                                </label>
+                                            </li>
+                                            <div class="-ml-2 p-1 border-primary border-y-2 border-r-2 rounded-r">
+                                                @option.VotersCount
+                                            </div>
+                                        </div>
+                                    }
+                                </ul>
+                            </div>
+                            <div class="p-6 text-center">
+                                <button id="vote-btn" type="submit" class="text-white bg-success hover:bg-success/75 focus:ring-4 focus:outline-none focus:ring-success font-medium rounded-lg text-sm px-5 py-2.5 mr-4">
+                                    Vote
+                                </button>
+
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="text-sm overflow-wrap-any whitespace-pre-line">@Model.Post.Content</div>
+    </div>
+</div>
+
+<div id="comments-section-container" class="mb-6 flex flex-col mt-3 bg-lighterprimary2 shadow p-3 text-darkshades mx-3 md:w-[700px] md:self-center">
+    <btn id="show-comments" class="hidden cursor-pointer text-sm hover:underline">@Model.Post.CommentsCount comments</btn>
+    <div id="load-more" class="hidden cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-8 w-8">
+            <path fill-rule="evenodd" d="M4.5 12a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm6 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm6 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" clip-rule="evenodd"/>
+        </svg>
+
+    </div>
+    <div id="loading-anim" class="hidden">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+    <div id="comments-container" class="hidden">
+
+    </div>
+    <div id="add-comment-container" class="hidden">
+        <div class="mt-2 flex w-fit flex-col rounded-lg p-4 shadow-lg text-darkshades bg-lighterprimary1">
+            <div class="flex items-center">
+                <img src="@(Model.CurrentUser.Avatar != null ? Model.CurrentUser.Avatar.Url : DefaultDataProvider.GetDefaultUserAvatar())"
+                     class="-mt-2 -ml-2 h-9 w-9 rounded-full bg-gray-100 object-cover" alt="" loading="lazy">
+                <p class="ml-2 overflow-hidden truncate whitespace-nowrap text-sm">@Model.CurrentUser.DisplayName</p>
+
+            </div>
+            <div class="mt-2 flex items-center rounded-lg px-3 py-2 bg-primary">
+                <textarea id="comment-text" rows="1" maxlength="3000" class="placeholder:text-darkshades block ml-2 p-2.5 w-full text-xs text-darkshades bg-lighterprimary1 rounded-lg border-none focus:ring-info focus:border-info" placeholder="Comment..."></textarea>
+                <input id="RequestVerificationToken" type="hidden" value="@token"/>
+                <button id="add-comment-btn" onclick="addComment()" class="inline-flex cursor-pointer justify-center rounded-full p-2 text-white hover:bg-darkshades hover:opacity-80">
+                    <svg aria-hidden="true" class="h-6 w-6 rotate-90" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+                    </svg>
+                    <span class="sr-only">Send message</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+    const commentsToFetchCount = 10;
+    let currentCommentsPageIndex = 0;
+        
+    let commentsHaveNextPage = false;
+    
+    let initialComments = null;
+    let commentsLoaded = [];
+    
+    let lastUpdateTime = new Date().toISOString();
+    
+    const authorId = "@Model.Post.Author.Id";
+    
+    const currentUserId = "@Model.CurrentUser.Id";
+    const currentUserAvatar = "@(Model.CurrentUser.Avatar != null ? Model.CurrentUser.Avatar.Url : DefaultDataProvider.GetDefaultUserAvatar())"
+    
+    const commentsSection = document.querySelector("#comments-section-container")
+    const commentsContainer = document.querySelector("#comments-container")
+    const loadMoreBtn = document.querySelector("#load-more");
+    const loadingAnim = document.querySelector("#loading-anim");
+    const commentInput = document.querySelector("#comment-text");
+    const addCommentBtn = document.querySelector("#add-comment-btn");
+    const addCommentContainer = document.querySelector("#add-comment-container");
+    const alertsContainer = document.querySelector("#alerts-container");
+    let showComments = document.querySelector("#show-comments");
+    window.addEventListener('DOMContentLoaded', () => {
+        getInitialComments();
+        setInterval(checkForNewComments, 10000);
+    });
+    
+    // Load the most recent comments on page load
+    
+    const getInitialComments = async () => {
+        loadingAnim.classList.remove('hidden');
+        loadingAnim.classList.add('lds-ellipsis');
+        const response = await fetch(
+            `${location.toString()}/Comments?commentsPageSize=${commentsToFetchCount}`,
+            {
+                method: 'GET',
+                headers: {
+                }
+            }
+        );
+        if (!response.ok) {
+            showLoadingCommentsErrorAlert();
+        } else {
+            const data = await response.json();
+            initialComments = data.comments;
+            commentsLoaded = data.comments;
+            
+            if (data.comments[0]) {
+                lastUpdateTime = new Date(data["lastUpdateCheckUtc"]).toISOString();
+                
+                currentCommentsPageIndex = data["pageIndex"];
+                // If there exist older comments
+                if (data["hasNextPage"]) {
+                    commentsHaveNextPage = true;
+                    loadMoreBtn.addEventListener('click', () => {
+                        getMoreComments();
+                    })
+                }
+            }
+            
+            showComments.classList.remove("hidden");
+            showComments.addEventListener('click', () => {
+                if (commentsHaveNextPage) {
+                    loadMoreBtn.classList.remove("hidden");
+                }
+                // Remove the event listener from comments button
+                const newShowComments = showComments.cloneNode(true);
+                newShowComments.addEventListener('click', () => {
+                    commentsContainer.classList.toggle('hidden');
+                    addCommentContainer.classList.toggle('hidden');
+                });
+                showComments.parentNode.replaceChild(newShowComments, showComments);
+                showComments = newShowComments;
+                commentsContainer.classList.toggle('hidden');
+                addCommentContainer.classList.toggle('hidden');
+            })
+            initialComments.forEach( c => {
+                commentsContainer.prepend(generateCommentHtml(c, false, true));
+            });
+        }
+        loadingAnim.classList.add('hidden');
+        loadingAnim.classList.remove('lds-ellipsis');
+    }
+    
+    
+    const getMoreComments = async () => {
+        loadingAnim.classList.remove('hidden');
+        loadingAnim.classList.add('lds-ellipsis');
+        const response = await fetch(
+            `${location.toString()}/Comments?commentsPageSize=${commentsToFetchCount}&pageIndex=${currentCommentsPageIndex + 1}`,
+            {
+                method: 'GET',
+                headers: {
+                }
+            }
+        );
+        if (!response.ok) {
+            showLoadingCommentsErrorAlert();
+        } else {
+            const data = await response.json();
+
+            commentsLoaded.push(...data.comments);
+            
+            currentCommentsPageIndex = data["pageIndex"];
+            
+            if (!data["hasNextPage"]) {
+                loadMoreBtn.classList.add("hidden");
+            }
+            
+            data.comments.forEach(c => {
+                commentsContainer.prepend(generateCommentHtml(c, false, true));
+            });
+        }
+        loadingAnim.classList.add('hidden');
+        loadingAnim.classList.remove('lds-ellipsis');
+    }
+    
+    const generateCommentHtml = (comment, isAppended = false, isPrepended = false) => {
+        let commentContainer = document.createElement("div");
+        commentContainer.innerHTML = 
+        `
+        <div class="mt-2 flex w-fit flex-col rounded-lg p-4 shadow-lg overflow-wrap-any text-darkshades bg-lighterprimary1">
+            <div class="flex items-center">
+                <a href="/User/${comment['authorUsername']}" class="flex items-center">
+                    <img src="${comment["authorAvatar"] !== null ? comment["authorAvatar"].url : '@DefaultDataProvider.GetDefaultUserAvatar()'}"
+                                        class="-mt-2 -ml-2 h-9 w-9 rounded-full bg-gray-100 object-cover" alt="" loading="lazy">
+                    <p class="ml-2 text-sm whitespace-nowrap max-w-[150px] md:max-w-none truncate overflow-hidden">${comment["authorDisplayName"]}</p>
+                    ${comment["authorId"] === authorId ? generateAuthorBadgeMarkup() : ''}
+                    ${comment["authorId"] === currentUserId ? generateCurrentUserBadgeMarkup() : ''}
+                </a>
+            </div>
+            <p class="mt-2 overflow-wrap-any whitespace-pre-line text-xs">${comment["content"]}</p>
+            <p class="m-auto mt-1 -mr-2 self-end text-xs">${comment["createdAtFormatted"]}</p>
+        </div>
+        `;
+        if (isAppended) {
+            commentContainer.classList.add("animate-slideInDown", "relative");
+        }
+        if (isPrepended) {
+            commentContainer.classList.add("animate-slideInUp", "relative");
+        }
+        return commentContainer;
+    }
+    
+    const generateAuthorBadgeMarkup = () => 
+        '<span class="bg-primarybackground/30 text-info text-xs font-semibold ml-2 px-2 py-0.5 rounded">Author</span>';
+    
+    const generateCurrentUserBadgeMarkup = () => 
+        '<span class="bg-primarybackground/30 text-info text-xs font-semibold ml-2 px-2 py-0.5 rounded">You</span>';
+    
+    const checkForNewComments = async () => {
+        const response = await fetch(
+            `${location.toString()}/Comments?handler=CheckForNewComments&lastClientChangeUtc=${lastUpdateTime}`,
+            {
+                method: 'GET',
+                headers: {
+                }
+            }
+        );
+        if (!response.ok) {
+            showLoadingCommentsErrorAlert();
+        } else {
+            const data = await response.json();
+            if (data["postHasChanged"]) {
+                data["newComments"].forEach(c => {
+                    commentsContainer.append(generateCommentHtml(c, true));
+                });
+                showNewCommentsAvailableAlert();
+            }
+            lastUpdateTime = new Date(data["lastUpdateCheckUtc"]).toISOString();
+        }
+    }
+    const addComment = async () => {
+        const content = commentInput.value;
+        if (!content) { return; }
+        commentInput.value = "";
+        const response = await fetch(
+            `${location.toString()}/Comments?lastClientChangeUtc=${lastUpdateTime}`,
+            {
+                method: 'POST',
+                headers: {
+                    RequestVerificationToken:
+                        document.getElementById("RequestVerificationToken").value,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    content,
+                    // createdAt: now.toISOString()
+                }),
+            }
+        );
+        if (!response.ok) {
+            showAddingCommentErrorAlert();
+        } else {
+            const data = await response.json();
+            if (data["postHasChanged"]) {
+                data["newComments"].forEach(c => {
+                    commentsContainer.append(generateCommentHtml(c, true));
+                });
+            }
+            if (data["commentAdded"]) {
+                await new Promise(r => setTimeout(r, 500));
+                commentsContainer.append(generateCommentHtml(data["newComment"], true))
+                showAddingCommentSuccessAlert();
+            }
+            lastUpdateTime = new Date(data["lastUpdateCheckUtc"]).toISOString();
+        }
+    }
+    
+    const clearAlertsContainer = () => {
+        alertsContainer.innerHTML = "";
+    }
+    
+    const showNewCommentsAvailableAlert = () => {
+        alertsContainer.innerHTML = `
+            <div class="mb-4 flex w-2/3 items-center justify-center rounded-b p-4 text-center text-lg text-white opacity-95 bg-lighterdarkshades" role="alert" xmlns="http://www.w3.org/1999/html">
+                <svg class="mr-3 inline h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                <div class="text-center">
+                    <span class="font-bold">New</span> comments are available.
+                </div>
+            </div>
+        `;
+        setTimeout(() => {
+            clearAlertsContainer();
+        }, 3000);
+    }
+    
+    const showAddingCommentSuccessAlert = () => {
+        alertsContainer.innerHTML = `
+            <div class="mb-4 flex w-2/3 items-center justify-center rounded-b p-4 text-center text-lg text-white opacity-95 bg-lighterdarkshades" role="alert" xmlns="http://www.w3.org/1999/html">
+                <svg class="mr-3 inline h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                <div class="text-center">
+                    <span class="font-bold">Your</span> comment has been added.
+                </div>
+            </div>
+        `;
+        setTimeout(() => {
+            clearAlertsContainer();
+        }, 3000);
+    }
+    
+    const showLoadingCommentsErrorAlert = () => {
+        alertsContainer.innerHTML = `
+            <div class="mb-4 flex w-2/3 items-center justify-center rounded-b p-4 text-center text-lg text-white opacity-95 bg-danger" role="alert" xmlns="http://www.w3.org/1999/html">
+                <svg class="mr-3 inline h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                <div class="text-center">
+                    <span class="font-bold">Error!</span> Loading new comments failed.
+                </div>
+            </div>
+        `;
+        setTimeout(() => {
+            clearAlertsContainer();
+        }, 3000);
+    }
+    const showAddingCommentErrorAlert = () => {
+        alertsContainer.innerHTML = `
+            <div class="mb-4 flex w-2/3 items-center justify-center rounded-b p-4 text-center text-lg text-white opacity-95 bg-danger" role="alert" xmlns="http://www.w3.org/1999/html">
+                <svg class="mr-3 inline h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                <div class="text-center">
+                    <span class="font-bold">Error!</span> Adding a new comment failed.
+                </div>
+            </div>
+        `;
+        setTimeout(() => {
+            clearAlertsContainer();
+        }, 3000);
+    }
+
+    </script>
+}

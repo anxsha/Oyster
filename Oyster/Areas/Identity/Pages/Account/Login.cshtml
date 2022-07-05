@@ -1,0 +1,101 @@
+@page "/"
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log In";
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage)) {
+    <div class="self-center z-50 mt-4 fixed animate-hide animation-delay-5s animation-fill-forwards flex p-4 mb-4 text-sm text-white bg-lighterdarkshades rounded-lg" role="alert">
+        <svg class="inline flex-shrink-0 mr-3 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <div>
+            <span class="font-medium">@Model.StatusMessage</span>
+        </div>
+    </div>
+}
+
+<div class="w-full flex flex-wrap grow bg-primary">
+
+    <div class="w-full md:w-1/2 flex flex-col">
+
+        @* Logo *@
+        <div class="flex justify-center md:justify-start pt-12 md:pl-12 md:-mb-12">
+            <a asp-page="./Login" class="h-[50px] w-[50px] rounded-[10px] bg-transparent shadow-[6px_6px_0px_#332b41,_-6px_-6px_0px_#cdabff]" alt="Logo"></a>
+        </div>
+
+        @* Login form *@
+        <div class="flex flex-col justify-center md:justify-start pt-8 md:pt-0 px-8 md:px-24 lg:px-32">
+            <p class="text-center text-3xl">Sign In - Oyster</p>
+            <form class="flex flex-col pt-3 md:pt-8" asp-route-returnUrl="@Model.ReturnUrl">
+                <div class="flex flex-col pt-4">
+                    <label asp-for="Input.Email" class="text-lg"></label>
+                    <input asp-for="Input.Email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mt-1 leading-tight focus:outline-none focus:shadow-outline"/>
+                    <span asp-validation-for="Input.Email" class="mt-2 text-sm text-red-400"></span>
+                </div>
+
+                <div class="flex flex-col pt-4">
+                    <label asp-for="Input.Password" class="text-lg"></label>
+                    <input asp-for="Input.Password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mt-1 leading-tight focus:outline-none focus:shadow-outline"/>
+                    <span asp-validation-for="Input.Password" class="mt-2 text-sm text-red-400"></span>
+                </div>
+
+                <div class="flex items-center pt-4">
+                    <input asp-for="Input.RememberMe" class="shadow appearance-none border rounded w-4 h-4 mr-1 text-darkshades focus:outline-none focus:shadow-outline"/>
+                    <label asp-for="Input.RememberMe" class="text-lg">
+                        Remember me
+                    </label>
+                </div>
+
+                <button type="submit" class="text-white bg-info hover:bg-darkshades focus:ring-4 focus:ring-darkshades font-bold text-lg rounded-lg text-sm p-2 mt-8 text-center">Log In</button>
+            </form>
+
+            @* Validation box *@
+            <div asp-validation-summary="All" class="mt-4 flex p-4 mb-4 text-red-250 bg-danger rounded-lg">
+                <svg class="inline self-center flex-shrink-0 mr-3 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="font-semibold">Error!</span>
+            </div>
+
+            <div class="text-center pt-12 pb-2">
+                <p>
+                    <a asp-page="./ForgotPassword" class="underline font-semibold">Forgot password?</a>
+                </p>
+            </div>
+
+            <div class="text-center pt-2 pb-12">
+                <p>Don't have an account? <a asp-page="./Register" class="underline font-semibold">Register here.</a></p>
+            </div>
+            
+        </div>
+    </div>
+
+    @* Mobile-hidden, side background *@
+    <div class="w-1/2 shadow-2xl overflow-hidden hidden md:block">
+        <svg class="rotate-[30deg] scale-[2] object-cover w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="a" gradientTransform="rotate(90)">
+                    <stop offset="5%" stop-color="#806ba2"/><stop offset="95%" stop-color="#9f90b9"/>
+                </linearGradient>
+                <linearGradient id="b" gradientTransform="rotate(90)">
+                    <stop offset="5%" stop-color="#806ba2"/><stop offset="95%" stop-color="#9f90b9"/>
+                </linearGradient>
+                <linearGradient id="c" gradientTransform="rotate(90)">
+                    <stop offset="5%" stop-color="#9585b1"/><stop offset="95%" stop-color="#afa3c4"/>
+                </linearGradient>
+                <linearGradient id="d" gradientTransform="rotate(90)">
+                    <stop offset="5%" stop-color="#c0b8d0"/><stop offset="95%" stop-color="#cfc9db"/>
+                </linearGradient>
+                <linearGradient id="e" gradientTransform="rotate(90)">
+                    <stop offset="5%" stop-color="#ebecee"/><stop offset="95%" stop-color="#f0f0f2"/>
+                </linearGradient>
+            </defs><path fill="#806ba2" d="M0 0h1000v600H0z"/><path d="M0 100c32.394-4.047 64.788-8.094 97-6 32.212 2.094 64.243 10.329 99 9 34.757-1.329 72.24-12.22 106-17 33.76-4.78 63.796-3.447 96 2s66.576 15.01 99 17c32.424 1.99 62.901-3.591 97-3 34.099.591 71.82 7.354 107 4 35.18-3.354 67.818-16.826 102-21 34.182-4.174 69.91.95 103 5s63.545 7.025 134 10l-40 500H0Z" fill="url(#a)"/><path d="M0 200c28.577-1.98 57.155-3.96 92-4 34.845-.04 75.958 1.862 110 4s61.013 4.513 94 9 71.992 11.086 107 5c35.008-6.086 66.02-24.856 96-27 29.98-2.144 58.925 12.34 93 18s73.278 2.496 107 2c33.722-.496 61.964 1.674 94-3 32.036-4.674 67.868-16.193 103-18 35.132-1.807 69.566 6.096 144 14l-40 400H0Z" fill="url(#b)"/><path d="M0 300c36.72 4.63 73.441 9.262 107 9 33.559-.262 63.955-5.416 94-8 30.045-2.584 59.738-2.598 92 2s67.091 13.809 102 8c34.909-5.809 69.896-26.636 103-26 33.104.636 64.323 22.737 100 24 35.677 1.263 75.81-18.31 108-23 32.19-4.69 56.436 5.507 87 13s67.447 12.284 103 12c35.553-.284 69.777-5.642 144-11l-40 300H0Z" fill="url(#c)"/><path d="M0 400c36.37-5.933 72.742-11.867 107-14 34.258-2.133 66.404-.466 97 4 30.596 4.466 59.642 11.732 92 15 32.358 3.268 68.03 2.537 102 0s66.24-6.88 98-10c31.76-3.12 63.007-5.015 97-7 33.993-1.985 70.73-4.058 108 2 37.27 6.058 75.073 20.246 106 22 30.927 1.754 54.98-8.928 86-13 31.02-4.072 69.01-1.536 147 1l-40 200H0Z" fill="url(#d)"/><path d="M0 500c31.316-1.84 62.632-3.68 94-1 31.368 2.68 62.787 9.881 98 9 35.213-.881 74.22-9.845 111-13 36.78-3.155 71.333-.502 103 4s60.447 10.852 94 14c33.553 3.148 71.88 3.095 105-2 33.12-5.095 61.032-15.232 92-14 30.968 1.232 64.991 13.832 98 14 33.009.168 65.002-12.095 99-16 33.998-3.905 69.999.547 146 5l-40 100H0Z" fill="url(#e)"/>
+        </svg>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+}

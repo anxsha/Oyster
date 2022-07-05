@@ -1,0 +1,140 @@
+@using Oyster.HelperClasses
+
+@* Each page using this partial view should implement the interface below. 
+   This partial is displayed on pages connected to a specific group 
+   and needs a few properties to be filled with info *@
+
+@model Oyster.Pages.Groups.Shared.IGroupHeaderInfoPageModel
+
+@if (Model?.Group is not null) {
+    <div class="flex flex-col w-full mt-2 p-4 shadow-xl bg-lighterprimary1 text-darkshades rounded">
+        <div class="flex">
+            @* Show a default group photo if the group does not have one *@
+            @if (Model.Group.Photo is null) {
+                <a class="h-fit text-center" asp-area="" asp-page="/Groups/Board" asp-route-id="@Model.Group.Id">
+                    <div class="min-w-[96px] w-24 h-24 rounded-full shadow-xl bg-gray-100 overflow-hidden">
+                        <img src="@(DefaultDataProvider.GetDefaultGroupPhoto())" alt="">
+                    </div>
+                </a>
+            } else {
+                <a class="h-fit text-center" asp-area="" asp-page="/Groups/Board" asp-route-id="@Model.Group.Id">
+                    <img class="min-w-[96px] w-[96px] h-[96px] object-cover rounded-full shadow-xl" src="@Model.Group.Photo.Url"
+                         alt="Group image">
+                </a>
+            }
+            <a class="h-fit overflow-hidden" asp-area="" asp-page="/Groups/Board" asp-route-id="@Model.Group.Id">
+                <h2 class="text-lg truncate font-semibold ml-5">@Model.Group.Name</h2>
+            </a>
+        </div>
+        @* Modal showing group description *@
+        @if (!string.IsNullOrWhiteSpace(Model.Group.Description)) {
+            <div class="text-sm truncate mt-4">
+                <btn type="button" title="Show group description" data-modal-toggle="group-desc-modal" class="cursor-pointer hover:underline text-darkshades font-semibold">
+                    Show group description
+                </btn>
+                <div id="group-desc-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 md:inset-0 h-modal md:h-full">
+                    <div class="relative p-2 m-auto bg-lighterprimary1 rounded w-full max-w-lg md:h-auto">
+                        <div class="relative p-4 bg-lighterprimary1 rounded-lg shadow">
+                            <button type="button" class="absolute top-0 right-0 text-white bg-transparent hover:bg-lighterprimary2 hover:text-info rounded-lg text-sm p-1 ml-auto inline-flex items-center" data-modal-toggle="group-desc-modal">
+                                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                            <p class="whitespace-pre-line overflow-wrap-any">@Model.Group.Description</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="flex mt-4">
+            <div class="flex ml-4 -space-x-4">
+                @{
+                    // For generating an element's id for the tooltip with display name
+                    int i = 0;
+                }
+                @* Show avatars of a few random group members *@
+                @foreach (var member in Model.MembersToDisplay) {
+                    @if (member.Avatar is null) {
+                        <div id="@(++i)" role="tooltip" class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-darkshades/90 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip">
+                            @member.DisplayName
+                            <div class="tooltip-arrow" data-popper-arrow></div>
+                        </div>
+                        <div class="overflow-hidden relative w-10 h-10 bg-gray-100 rounded-full ">
+                            <svg data-tooltip-target="@i" class="absolute -left-1 w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                    } else {
+                        <div id="@(++i)" role="tooltip" class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-darkshades/90 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip">
+                            @member.DisplayName
+                            <div class="tooltip-arrow" data-popper-arrow></div>
+                        </div>
+                        <img data-tooltip-target="@i" class="object-cover overflow-hidden relative w-10 h-10 bg-gray-100 rounded-full " src="@member.Avatar.Url" alt="User avatar">
+                    }
+                }
+                <a title="Members" asp-area="" asp-page="/Groups/Members" asp-route-id="@Model.Group.Id">
+                    <div class="overflow-hidden relative w-10 h-10 bg-[#f3f4f6] text-[#9ca3af] rounded-full flex justify-center select-none items-center w-10 h-10 text-xs font-medium rounded-full hover:opacity-[0.9]">
+                        <span>...</span>
+                    </div>
+                </a>
+            </div>
+            <div class="ml-auto flex gap-1">
+                @* Group members can leave the group, show them the option *@
+                @if (!Model.IsUserGroupFounder) {
+                    <div title="Leave group" data-modal-toggle="leave-group-modal" class="cursor-pointer hover:opacity-[0.9]">
+                        <div class="flex overflow-hidden relative w-10 h-10 bg-[#f3f4f6] rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="text-gray-400 relative min-w-[1.75rem] bottom-[-25%] fill-[#9ca3af]">
+                                <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd"/>
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="text-gray-400 relative min-w-[1.5rem] right-[30%] bottom-[5%]">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="leave-group-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 md:inset-0 h-modal md:h-full">
+                        <div class="relative p-2 m-auto bg-lighterprimary1 rounded w-full max-w-lg md:h-auto">
+                            <div class="relative p-4 bg-lighterprimary1 rounded-lg shadow">
+                                <button type="button" class="absolute top-0 right-0 text-white bg-transparent hover:bg-lighterprimary2 hover:text-info rounded-lg text-sm p-1 ml-auto inline-flex items-center" data-modal-toggle="leave-group-modal">
+                                    <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                                <p class="text-xl font-bold mr-1 text-center">Are you sure you want to leave this group?</p>
+                                <form class="mt-4 text-center" method="post" asp-page="/Groups/Board" asp-page-handler="LeaveGroup" asp-route-id="@Model.Group.Id">
+                                    <button class="text-white bg-danger/80 hover:bg-danger focus:ring-4 focus:ring-danger w-fit self-center rounded-lg text-sm p-2.5 mt-4 text-center" type="submit">Leave group</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+                <a title="Members" class="hover:opacity-[0.9]" asp-area="" asp-page="/Groups/Members" asp-route-id="@Model.Group.Id">
+                    <div class="overflow-hidden relative w-10 h-10 bg-[#f3f4f6] rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="text-gray-400 relative bottom-[-6px] right-[-1px] fill-[#9ca3af]" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+                        </svg>
+                    </div>
+                </a>
+                @if (Model.IsUserGroupFounder) {
+                    @* Show a link to adding new members only to the founder *@
+                    <a title="Add members" class="hover:opacity-[0.9]" asp-area="" asp-page="/Groups/AddMembers" asp-route-id="@Model.Group.Id">
+                        <div class="overflow-hidden relative w-10 h-10 bg-[#f3f4f6] rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="relative bottom-[-5px] right-[-2px] fill-[#9ca3af]">
+                                <path d="M6.25 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM3.25 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM19.75 7.5a.75.75 0 00-1.5 0v2.25H16a.75.75 0 000 1.5h2.25v2.25a.75.75 0 001.5 0v-2.25H22a.75.75 0 000-1.5h-2.25V7.5z"/>
+                            </svg>
+                        </div>
+                    </a>
+                    @* Show a link to group settings *@
+                    <a title="Edit" class="hover:opacity-[0.9]" asp-area="" asp-page="/Groups/Edit" asp-route-id="@Model.Group.Id">
+                        <div class="flex overflow-hidden relative w-10 h-10 bg-[#f3f4f6] rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 self-center m-auto fill-[#9ca3af]">
+                                <path fill-rule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 00-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 00-2.282.819l-.922 1.597a1.875 1.875 0 00.432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 000 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 00-.432 2.385l.922 1.597a1.875 1.875 0 002.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 002.28-.819l.923-1.597a1.875 1.875 0 00-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 000-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 00-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 00-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 00-1.85-1.567h-1.843zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+
+    </div>
+}

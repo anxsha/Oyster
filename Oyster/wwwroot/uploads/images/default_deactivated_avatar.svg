@@ -1,0 +1,7 @@
+<svg data-tooltip-target="@i" class="absolute -left-1 w-12 h-12 text-gray-400" viewBox="0 0 20 20"
+     xmlns="http://www.w3.org/2000/svg">
+    <path fill="#9CA3AF" transform="translate(-2, 0) scale(1.2, 1.2)" fill-rule="evenodd"
+          d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+    <path fill="none" transform="translate(10.5, 12) scale(0.3, 0.3)" stroke-width="2" stroke="#314C70" stroke-linecap="round"
+          stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+</svg>

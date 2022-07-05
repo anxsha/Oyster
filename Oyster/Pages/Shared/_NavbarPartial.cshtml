@@ -1,0 +1,78 @@
+@using Microsoft.AspNetCore.Identity
+@using Oyster.Areas.Identity.Data
+@inject SignInManager<OysterUser> SignInManager
+@inject UserManager<OysterUser> UserManager
+
+
+@if (SignInManager.IsSignedIn(User)) {
+    <nav class="bg-primary uppercase md:px-4 py-2.5 md:h-30 mb-6 shadow-xl rounded-b-sm shadow-darkaccent font-semibold">
+        <div class="container flex flex-wrap justify-between items-center mx-auto h-full">
+
+            @* Visible only on mobile screens *@
+
+            <button data-collapse-toggle="mobile-menu" type="button" class="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden focus:outline-none focus:ring-2 focus:ring-gray-200 " aria-controls="mobile-menu-2" aria-expanded="false">
+                <span class="sr-only">Open main menu</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="white">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                </svg>
+
+            </button>
+
+            <a asp-page="/Index" class="md:hidden mr-5 h-[37.5px] w-[37.5px] rounded-[7.5px] bg-transparent shadow-[4.5px_4.5px_0px_#332b41,_-4.5px_-4.5px_0px_#cdabff]" alt="Logo"></a>
+
+            <div class="hidden w-full md:hidden" id="mobile-menu">
+                <ul class="flex flex-col mt-4">
+                    <li>
+                        <a asp-page="/Home" class="block py-2 pr-4 pl-3 text-white border-b border-gray-100">Home</a>
+                    </li>
+                    <li>
+                        <a asp-page="/Groups/Index" class="block py-2 pr-4 pl-3 text-white border-b border-gray-100">Groups</a>
+                    </li>
+                    <li>
+                        <a id="manage" asp-area="Identity" asp-page="/Account/Manage/Index" class="block py-2 pr-4 pl-3 text-white border-b border-gray-100">Profile</a>
+                    </li>
+                    <li>
+                        <form id="logoutForm" class="block py-2 pr-4 pl-3 text-white border-b border-gray-100" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new {area = ""})">
+                            <button id="logout" type="submit" class="uppercase font-semibold">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+
+            @* End of mobile screens only *@
+
+            <div class="hidden md:flex md:justify-between">
+                <ul class="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-lg md:font-semibold">
+                    <li>
+                        <a asp-page="/Home" class="block py-2 pr-4 pl-3 text-white border-b border-gray-100 md:hover:bg-transparent md:border-0 md:p-0">Home</a>
+                    </li>
+                    <li>
+                        <a asp-page="/Groups/Index" class="block py-2 pr-4 pl-3 text-white border-b border-gray-100 md:hover:bg-transparent md:border-0 md:p-0">Groups</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="hidden md:flex md:justify-between">
+                <a asp-page="/Home" class="flex">
+                    <a asp-page="./Login" class="mr-5 h-[50px] w-[50px] rounded-[10px] bg-transparent shadow-[6px_6px_0px_#332b41,_-6px_-6px_0px_#cdabff]" alt="Logo"></a>
+                    <span class="self-center text-white text-2xl font-semibold whitespace-nowrap">Oyster</span>
+                </a>
+            </div>
+
+            <div class="hidden md:flex md:justify-between">
+                <ul class="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-lg md:font-semibold">
+
+                    <li>
+                        <a id="manage" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage" class="block py-2 pr-4 pl-3 text-white border-b border-gray-100 md:hover:bg-transparent md:border-0 md:p-0">Profile</a>
+                    </li>
+                    <li>
+                        <form id="logoutForm" class="block py-2 pr-4 pl-3 text-white border-b border-gray-100 md:hover:bg-transparent md:border-0 md:p-0" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new {area = ""})">
+                            <button id="logout" type="submit" class="uppercase font-semibold">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+}
